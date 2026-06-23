@@ -2,6 +2,14 @@
 
 Imagine standing at the dawn of human history, tracing the vast trajectory that has brought us from the first hunter-gatherer communities to the brink of a post-capitalist future. The journey of our species is not merely a chronicle of time passing, but a story of profound transformations — each stage shaped by the tools we invent, the resources we steward, and the ideas we dare to imagine. And woven through this story, like a golden thread, is a recurring pattern: every great leap forward in human civilization has been triggered by a revolution — a sudden, irreversible shift in what we know, what we can do, and how we organize ourselves. But between those revolutions lie something equally instructive: the roads not taken, the libraries burned, the steam engines built as temple toys, and the flowers chosen over swords.
 
+---
+
+![The Long Arc of Civilization](cover.png)
+
+*From the first campfire to the gleaming cities of tomorrow — a river of time flows through every age of human achievement, connecting each era to the next. The story of civilization is not a series of isolated chapters but a single, unbroken arc: each revolution building on the ruins and wisdom of the one before it.*
+
+---
+
 ## The Cognitive Revolution: The Spark That Lit the Fire
 
 Our story begins not with cities or farms or factories, but with a transformation so subtle and so profound that it left no monument, no ruin, no artifact that could fully capture its magnitude. Approximately seventy thousand years ago, something changed in the human mind. Scholars call it the Cognitive Revolution — the moment when Homo sapiens, a species that had existed for hundreds of thousands of years, suddenly began to think, communicate, and cooperate in ways no creature on Earth had ever done before.
