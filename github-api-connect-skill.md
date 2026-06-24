@@ -40,6 +40,7 @@ https://api.github.com/repos/{owner}/{repo}/contents/{path}
 | List folder | `GET` | Returns array of file/dir entries |
 | Create new file | `PUT` | No `sha` field in payload |
 | Update existing file | `PUT` | Must include current `sha` in payload |
+| Delete file | `DELETE` | Must include current `sha` in payload |
 
 ---
 
@@ -287,6 +288,42 @@ update_text_file(
 
 ---
 
+
+## DELETE — Removing Files from the Repo
+
+### Delete a file
+
+```python
+def delete_file(remote_path: str, message: str):
+    """
+    Delete a file from the repo.
+    Automatically fetches the current SHA — safe to call even if you're unsure the file exists.
+    """
+    sha = get_sha(remote_path)
+    if not sha:
+        print(f"⚠️  {remote_path} not found — nothing to delete")
+        return
+
+    payload = {"message": message, "sha": sha, "branch": BRANCH}
+
+    url = f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{remote_path}"
+    req = urllib.request.Request(url, data=json.dumps(payload).encode(), method="DELETE")
+    req.add_header("Authorization", f"token {TOKEN}")
+    req.add_header("Accept", "application/vnd.github.v3+json")
+    req.add_header("Content-Type", "application/json")
+
+    with urllib.request.urlopen(req) as r:
+        result = json.load(r)
+        print("🗑️  Deleted:", remote_path)
+        print("   Commit :", result["commit"]["sha"])
+
+# Examples
+delete_file("01_chapter1/old_draft.md", "remove old draft")
+delete_file("notes/temp.md",            "clean up temp notes")
+```
+
+---
+
 ## CLI Tool: github_push.py
 
 A ready-to-use command-line wrapper for push operations is available as `github_push.py` in this project.
@@ -395,4 +432,15 @@ def push(content, path, msg):
     s = sha(path)
     if s: p["sha"] = s
     _req(path, p)
+
+# DELETE: remove a file
+def delete(path, msg):
+    s = sha(path)
+    if not s: return print(f"⚠️ {path} not found")
+    p = {"message": msg, "sha": s, "branch": BRANCH}
+    req = urllib.request.Request(f"{BASE}/{path}", data=json.dumps(p).encode(), method="DELETE")
+    req.add_header("Authorization", f"token {TOKEN}")
+    req.add_header("Accept", "application/vnd.github.v3+json")
+    req.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(req) as r: json.load(r); print(f"🗑️ Deleted {path}")
 ```
