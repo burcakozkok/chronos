@@ -96,16 +96,31 @@ print(text[:500])
 
 ### Read a binary file (image, PDF, etc.)
 
+> ⚠️ **Important:** The Contents API silently returns empty `content` for files larger than ~1 MB.
+> Always use the `download_url` fallback shown below — it works for files of any size.
+
 ```python
 def read_binary_file(remote_path: str, save_to: str):
-    """Download a binary file and save it locally."""
-    data = gh_get(remote_path)
-    raw = base64.b64decode(data["content"])
+    """
+    Download a binary file and save it locally.
+    Automatically falls back to download_url for files > ~1 MB
+    where the Contents API returns empty content.
+    """
+    meta = gh_get(remote_path)
+    raw  = base64.b64decode(meta["content"]) if meta.get("content", "").strip() else b""
+
+    if len(raw) == 0:
+        # Fallback: stream directly from raw CDN URL (handles files of any size)
+        req = urllib.request.Request(meta["download_url"])
+        req.add_header("Authorization", f"token {TOKEN}")
+        with urllib.request.urlopen(req) as r:
+            raw = r.read()
+
     with open(save_to, "wb") as f:
         f.write(raw)
     print(f"Saved {len(raw):,} bytes → {save_to}")
 
-# Example
+# Example — works for any file size including multi-MB images
 read_binary_file("01_chapter1/cover.png", "/tmp/cover.png")
 ```
 
@@ -319,7 +334,7 @@ python github_push.py \
 3. **One file per Contents API call.** For multi-file atomic commits, use the Git Data API (blobs → tree → commit → ref).
 4. **All content must be base64-encoded** — including plain text files.
 5. **Token scope must be `repo`** — `public_repo` is insufficient for push operations even on public repos.
-6. **File size limit ~1 MB** via the Contents API. Larger files require the Git Blobs API.
+6. **Files > ~1 MB:** Contents API returns empty `content` — always use the `download_url` fallback in `read_binary_file()`.
 
 ---
 
@@ -336,7 +351,7 @@ BASE = f"https://api.github.com/repos/{OWNER}/{REPO}/contents"
 
 def _req(path, payload=None):
     req = urllib.request.Request(
-        f"{BASE}/{path}",
+        f"{BASE}/{path}" + ("" if payload else f"?ref={BRANCH}"),
         data=json.dumps(payload).encode() if payload else None,
         method="PUT" if payload else "GET"
     )
@@ -350,6 +365,17 @@ def _req(path, payload=None):
 # PULL: read text
 def pull(path):
     return base64.b64decode(_req(path)["content"]).decode()
+
+# PULL: read binary (any size)
+def pull_bin(path, save_to):
+    meta = _req(path)
+    raw  = base64.b64decode(meta["content"]) if meta.get("content","").strip() else b""
+    if not raw:
+        with urllib.request.urlopen(
+            urllib.request.Request(meta["download_url"],
+                                   headers={"Authorization": f"token {TOKEN}"})
+        ) as r: raw = r.read()
+    open(save_to,"wb").write(raw); return len(raw)
 
 # PULL: get SHA
 def sha(path):
